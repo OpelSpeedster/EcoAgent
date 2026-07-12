@@ -38,7 +38,7 @@ In short: this is not a template drop-in — it reflects significant end-to-end 
 watsonx_client.py   ← IBM Granite ModelInference, AGENT_INSTRUCTIONS, IMPACT_TABLE
         │
         ▼
-app.py              ← Gradio Blocks (4 tabs, Bootstrap CSS, dark mode, session state)
+      app.py        ← Gradio Blocks (4 tabs, Bootstrap CSS, dark mode, session state)
 ```
 
 **Model:** `ibm/granite-4-h-small` (eu-de region, watsonx.ai)  
