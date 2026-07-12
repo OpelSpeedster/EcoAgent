@@ -1,14 +1,3 @@
----
-title: EcoAgent
-emoji: 🌱
-colorFrom: green
-colorTo: pink
-sdk: gradio
-sdk_version: "6.20.0"
-app_file: app.py
-pinned: true
----
-
 # 🌱 EcoAgent — AI-Powered Eco Lifestyle Assistant
 
 An India-focused sustainable living assistant powered by **IBM Granite** via **watsonx.ai**. Chat about eco habits, explore a household impact dashboard, look up local recycling guides, and build a family sustainability profile.
