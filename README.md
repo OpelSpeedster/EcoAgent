@@ -17,13 +17,13 @@ An India-focused sustainable living assistant powered by **IBM Granite** via **w
 
 ## 💪 Effort Behind This Project
 
-This project is the result of a full **v2 rebuild** with focused work across product design, AI integration, and UX:
+This project is the result of a full **v2 rebuild** with focused work across product design, AI integration and UX:
 
-- Replaced the older pipeline with a new `watsonx_client.py` architecture using IBM Granite + watsonx.ai SDK
-- Designed and built a complete 4-tab Gradio application (`Chat`, `Dashboard`, `Recycling Guide`, `Profile`)
-- Created impact tracking logic (eco score + CO₂/water/waste calculations) with session-aware state handling
-- Added India-focused sustainability guidance, recycling flows, and household personalization
-- Reworked environment setup, dependency management, and deployment readiness for Hugging Face Spaces
+- Replaced the older pipeline with a new `watsonx_client.py` architecture using IBM Granite + watsonx.ai SDK.
+- Designed and built a complete 4-tab Gradio application (`Chat`, `Dashboard`, `Recycling Guide`, `Profile`).
+- Created impact tracking logic (eco score + CO₂/water/waste calculations) with session-aware state handling.
+- Added India-focused sustainability guidance, recycling flows, and household personalization.
+- Reworked environment setup, dependency management, and deployment readiness for Hugging Face Spaces.
 
 In short: this is not a template drop-in — it reflects significant end-to-end implementation effort from planning to delivery.
 
