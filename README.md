@@ -52,7 +52,7 @@ watsonx_client.py   ← IBM Granite ModelInference, AGENT_INSTRUCTIONS, IMPACT_T
 app.py              ← Gradio Blocks (4 tabs, Bootstrap CSS, dark mode, session state)
 ```
 
-**Model:** `ibm/granite-3-3-8b-instruct` (eu-de region, watsonx.ai)  
+**Model:** `ibm/granite-4-h-small` (eu-de region, watsonx.ai)  
 **Auth:** IBM Cloud API key → watsonx.ai SDK (no Orchestrate REST API)
 
 ---
