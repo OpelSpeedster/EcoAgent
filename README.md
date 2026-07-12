@@ -1,14 +1,3 @@
----
-title: EcoAgent
-emoji: 🌱
-colorFrom: green
-colorTo: teal
-sdk: gradio
-sdk_version: "4.44.1"
-app_file: app.py
-pinned: false
----
-
 # 🌱 EcoAgent — AI-Powered Eco Lifestyle Assistant
 
 An India-focused sustainable living assistant powered by **IBM Granite** via **watsonx.ai**. Chat about eco habits, explore a household impact dashboard, look up local recycling guides, and build a family sustainability profile.
@@ -26,6 +15,20 @@ An India-focused sustainable living assistant powered by **IBM Granite** via **w
 
 ---
 
+## 💪 Effort Behind This Project
+
+This project is the result of a full **v2 rebuild** with focused work across product design, AI integration, and UX:
+
+- Replaced the older pipeline with a new `watsonx_client.py` architecture using IBM Granite + watsonx.ai SDK
+- Designed and built a complete 4-tab Gradio application (`Chat`, `Dashboard`, `Recycling Guide`, `Profile`)
+- Created impact tracking logic (eco score + CO₂/water/waste calculations) with session-aware state handling
+- Added India-focused sustainability guidance, recycling flows, and household personalization
+- Reworked environment setup, dependency management, and deployment readiness for Hugging Face Spaces
+
+In short: this is not a template drop-in — it reflects significant end-to-end implementation effort from planning to delivery.
+
+---
+
 ## Architecture
 
 ```
@@ -38,7 +41,7 @@ watsonx_client.py   ← IBM Granite ModelInference, AGENT_INSTRUCTIONS, IMPACT_T
 app.py              ← Gradio Blocks (4 tabs, Bootstrap CSS, dark mode, session state)
 ```
 
-**Model:** `ibm/granite-3-3-8b-instruct` (eu-de region, watsonx.ai)  
+**Model:** `ibm/granite-4-h-small` (eu-de region, watsonx.ai)  
 **Auth:** IBM Cloud API key → watsonx.ai SDK (no Orchestrate REST API)
 
 ---
