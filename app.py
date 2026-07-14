@@ -36,6 +36,7 @@ from watsonx_client import (
     PRODUCT_RECS,
     INDIAN_CITIES,
 )
+from agent import agent_loop, format_tool_calls
 
 # ---------------------------------------------------------------------------
 load_dotenv(".env")
@@ -366,6 +367,52 @@ h3, h2 { color: var(--eco-text) !important; }
     border-top: 1px solid var(--eco-border);
     margin-top: 10px;
 }
+
+/* Agent Mode container */
+.gr-form,
+.gr-block,
+.gr-group {
+    background: #fcfcfd !important;
+    border: 1px solid #e4e4e7 !important;
+}
+
+/* Agent Mode row */
+#agent-mode {
+    background: #ffffff !important;
+    border: 1px solid #e4e4e7 !important;
+    border-radius: 8px !important;
+    padding: 10px !important;
+}
+
+#agent-mode label {
+    color: #1c1c1e !important;
+}
+
+#agent-mode input:checked {
+    accent-color: #2e7d50 !important;
+}
+
+#agent-mode-row {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* Checkbox container */
+.gr-checkbox {
+    background: #ffffff !important;
+    border: 1px solid #e4e4e7 !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+}
+
+/* Checkbox label */
+.gr-checkbox label {
+    color: #1c1c1e !important;
+    font-weight: 500;
+}
+
 """
 
 # ---------------------------------------------------------------------------
@@ -374,8 +421,7 @@ h3, h2 { color: var(--eco-text) !important; }
 HEADER_HTML = """
 <div class="eco-header">
   <h1>EcoAgent</h1>
-  <p>Your AI guide to greener living — personalized, practical, powered by IBM Granite and watsonx.ai</p>
-  <span class="eco-model-badge">ibm/granite-4-h-small</span>
+  <p>AI-powered Eco Lifestyle Assistant using IBM Granite 4 H Small and watsonx.ai</p>
 </div>
 """
 
@@ -550,15 +596,18 @@ def chat_submit(
     history: list,
     profile_state: dict,
     actions_state: list,
+    agent_mode: bool = False,
 ):
     """Handle a user message: call Granite, update history.
 
     Gradio 6.x passes history as list[dict] where content is a list of
     content blocks: [{"role": "user", "content": [{"type": "text", "text": "..."}]}].
     We extract plain text for the API call and return structured blocks for display.
+
+    When agent_mode is True, uses the agentic loop with tool calls.
     """
     if not message or not message.strip():
-        return history, profile_state, actions_state, _score_html(actions_state)
+        return history, profile_state, actions_state, _score_html(actions_state), ""
 
     # Gradio 6 delivers history with structured content blocks
     # Extract plain text for the watsonx API call
@@ -580,8 +629,15 @@ def chat_submit(
 
     messages.append({"role": "user", "content": message})
 
+    tool_display = ""
+
     try:
-        reply = get_eco_answer(messages, profile_state)
+        if agent_mode:
+            # Use agentic loop with tools
+            reply, tool_calls = agent_loop(message, profile_state, messages[:-1])
+            tool_display = format_tool_calls(tool_calls)
+        else:
+            reply = get_eco_answer(messages, profile_state)
     except EnvironmentError as exc:
         reply = (
             "**Setup required.**\n\n"
@@ -604,7 +660,7 @@ def chat_submit(
         {"role": "user", "content": [{"type": "text", "text": message}]},
         {"role": "assistant", "content": [{"type": "text", "text": reply}]},
     ]
-    return history, profile_state, actions_state, _score_html(actions_state)
+    return history, profile_state, actions_state, _score_html(actions_state), tool_display
 
 
 def _score_html(actions_state: list) -> str:
@@ -635,18 +691,71 @@ def update_dashboard(actions_state: list, profile_state: dict) -> str:
     return _build_dashboard_html(impact, profile_state or {})
 
 
-def get_recycling(material: str, city: str) -> tuple[str, str]:
-    """Fetch guide + product recs for a material/city combination."""
+def _search_local_recycling(material: str, city: str) -> str:
+    """Search for local recycling centers and latest info using web search."""
+    from tools import execute_tool
+    
+    # Build search queries for comprehensive results
+    queries = [
+        f"{material} recycling center {city} India",
+        f"{material} waste disposal {city} India 2026",
+    ]
+    
+    all_results = []
+    for query in queries:
+        try:
+            result = execute_tool("web_search", {"query": query})
+            if result and "No results" not in result and "Error" not in result:
+                # Extract just the search results, not the header
+                lines = result.split("\n")
+                # Find the numbered results
+                for line in lines:
+                    if line.strip().startswith("1.") or line.strip().startswith("2.") or line.strip().startswith("3."):
+                        all_results.append(line.strip())
+                break  # Stop after first successful query
+        except Exception:
+            continue
+    
+    if all_results:
+        return (
+            f"\n\n---\n\n"
+            f"### Local Recycling Options in {city}\n\n"
+            f"{chr(10).join(all_results[:5])}\n\n"
+            f"*For the most current information, please verify directly with these centers.*"
+        )
+    else:
+        return (
+            f"\n\n---\n\n"
+            f"### Local Recycling Options in {city}\n\n"
+            f"*Web search did not return specific results for {material} recycling in {city}. "
+            f"Please contact your local municipal corporation or waste management authority for current information.*"
+        )
+
+
+def get_recycling(material: str, city: str) -> tuple[str, str, str]:
+    """Fetch guide + local info + product recs for a material/city combination.
+    
+    Returns:
+        Tuple of (guide_markdown, local_info_markdown, products_html)
+    """
     if not material or not city:
-        return "Please select both a material and a city.", ""
+        return "Please select both a material and a city.", "", ""
+    
+    # 1. Get LLM-generated guide (existing)
     try:
         guide = get_recycling_guide(material, city)
     except EnvironmentError as exc:
         guide = f"Setup required: {exc}"
     except RuntimeError as exc:
         guide = f"Could not fetch guide: {exc}"
+    
+    # 2. Web search for local recycling info (NEW)
+    local_info = _search_local_recycling(material, city)
+    
+    # 3. Product recommendations (existing)
     products_html = _build_products_html(material)
-    return guide, products_html
+    
+    return guide, local_info, products_html
 
 
 def save_profile(
@@ -698,6 +807,20 @@ with gr.Blocks(title="EcoAgent — Eco Lifestyle Assistant") as demo:
                             "</div>"
                         ),
                     )
+                    # Agent Mode toggle and tool call display
+                    with gr.Row(elem_id="agent-mode-row"):
+                        agent_mode_toggle = gr.Checkbox(
+                            label="Agent Mode",
+                            value=False,
+                            info="Multi-step reasoning with tools",
+                            scale=1,
+                            elem_id="agent-mode",
+                        )
+                    tool_calls_display = gr.Markdown(
+                        "",
+                        visible=True,
+                        label="Tool Calls",
+                    )
                     with gr.Row():
                         msg_input = gr.Textbox(
                             placeholder="Ask EcoAgent a question...",
@@ -705,7 +828,7 @@ with gr.Blocks(title="EcoAgent — Eco Lifestyle Assistant") as demo:
                             scale=5,
                             lines=1,
                         )
-                        send_btn = gr.Button("Send", variant="primary", scale=1)
+                        send_btn = gr.Button("Send",variant="primary", scale=1)
 
                     gr.Markdown("**Quick start questions:**")
                     with gr.Row():
@@ -725,19 +848,19 @@ with gr.Blocks(title="EcoAgent — Eco Lifestyle Assistant") as demo:
                         btn = gr.Button(label, size="sm", variant="secondary")
                         chip_btns.append((slug, btn))
 
-            def _submit(message, history, profile, actions):
-                return chat_submit(message, history, profile, actions)
+            def _submit(message, history, profile, actions, agent_mode):
+                return chat_submit(message, history, profile, actions, agent_mode)
 
             send_btn.click(
                 _submit,
-                inputs=[msg_input, chatbot, profile_state, actions_state],
-                outputs=[chatbot, profile_state, actions_state, score_display],
+                inputs=[msg_input, chatbot, profile_state, actions_state, agent_mode_toggle],
+                outputs=[chatbot, profile_state, actions_state, score_display, tool_calls_display],
             ).then(lambda: "", outputs=msg_input)
 
             msg_input.submit(
                 _submit,
-                inputs=[msg_input, chatbot, profile_state, actions_state],
-                outputs=[chatbot, profile_state, actions_state, score_display],
+                inputs=[msg_input, chatbot, profile_state, actions_state, agent_mode_toggle],
+                outputs=[chatbot, profile_state, actions_state, score_display, tool_calls_display],
             ).then(lambda: "", outputs=msg_input)
 
             for slug, btn in chip_btns:
@@ -772,7 +895,8 @@ with gr.Blocks(title="EcoAgent — Eco Lifestyle Assistant") as demo:
             gr.Markdown(
                 "### Local Recycling Guide\n"
                 "Select a waste material and your city to get India-specific "
-                "recycling instructions and eco-friendly product alternatives."
+                "recycling instructions and eco-friendly product alternatives.\n\n"
+                "*Includes web search for local recycling centers in your city.*"
             )
             with gr.Row():
                 material_dd = gr.Dropdown(
@@ -794,12 +918,17 @@ with gr.Blocks(title="EcoAgent — Eco Lifestyle Assistant") as demo:
                 label="Recycling Instructions",
                 elem_classes="recycling-output",
             )
+            local_output = gr.Markdown(
+                "",
+                label="Local Recycling Centers",
+                elem_classes="recycling-output",
+            )
             products_output = gr.HTML("", label="Eco-Friendly Alternatives")
 
             guide_btn.click(
                 get_recycling,
                 inputs=[material_dd, city_dd],
-                outputs=[guide_output, products_output],
+                outputs=[guide_output, local_output, products_output],
             )
             material_dd.change(
                 lambda m: _build_products_html(m),

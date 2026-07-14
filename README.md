@@ -4,7 +4,7 @@ emoji: 🌱
 colorFrom: green
 colorTo: teal
 sdk: gradio
-sdk_version: "4.44.1"
+sdk_version: "6.20.0"
 app_file: app.py
 pinned: false
 ---
@@ -13,16 +13,44 @@ pinned: false
 
 An India-focused sustainable living assistant powered by **IBM Granite** via **watsonx.ai**. Chat about eco habits, explore a household impact dashboard, look up local recycling guides, and build a family sustainability profile.
 
+**Classification:** Agentic AI Application with Prompt Engineering
+
 ---
 
 ## Features
 
 | Tab | What it does |
 |---|---|
-| 💬 **Chat** | Multi-turn conversation with IBM Granite — personalised eco tips, government schemes, impact estimates |
+| 💬 **Chat** | Multi-turn conversation with IBM Granite — personalised eco tips, government schemes, impact estimates. **Agent Mode** enables multi-step reasoning with 5 tools. |
 | 📊 **Dashboard** | Session-based eco score (0–100), CO₂/water/waste savings tracker, household summary |
 | ♻️ **Recycling Guide** | City-specific recycling instructions for 8 material categories + eco-friendly product alternatives |
 | 🏡 **Profile** | Household members, Indian city, current eco habits — personalises all chat responses |
+
+---
+
+## Agent Mode
+
+EcoAgent features an **agentic AI loop** that can use tools to provide accurate, data-driven answers:
+
+| Tool | Purpose |
+|------|---------|
+| 🧮 **Impact Calculator** | Get exact CO₂/water/waste numbers for eco actions |
+| ♻️ **Recycling Guide** | City-specific recycling instructions |
+| 🔍 **Web Search** | Search latest news, schemes, local services |
+| 🏛️ **Scheme Checker** | Indian government scheme details and eligibility |
+| 👥 **Household Profiler** | Personalized action plan based on profile |
+
+**How it works:**
+1. Enable "Agent Mode" checkbox in Chat tab
+2. Ask a question
+3. Agent reasons step-by-step, calls tools as needed
+4. See which tools were used below the response
+
+**Date Accuracy Fix:**
+- System prompt includes `TODAY'S DATE` so the LLM knows the current date
+- Web search results include `Search conducted on: <date>` header
+- LLM is instructed to trust search results over its training data
+- Prevents hallucinated outdated dates like "August 2025"
 
 ---
 
@@ -35,11 +63,45 @@ An India-focused sustainable living assistant powered by **IBM Granite** via **w
 watsonx_client.py   ← IBM Granite ModelInference, AGENT_INSTRUCTIONS, IMPACT_TABLE
         │
         ▼
-app.py              ← Gradio Blocks (4 tabs, Bootstrap CSS, dark mode, session state)
+tools.py            ← 5 tool definitions, executor, scheme database
+        │
+        ▼
+agent.py            ← Agentic loop with multi-step reasoning
+        │
+        ▼
+app.py              ← Gradio Blocks (4 tabs, ultra-light eco green theme, session state)
 ```
 
-**Model:** `ibm/granite-3-3-8b-instruct` (eu-de region, watsonx.ai)  
+**Model:** `ibm/granite-4-h-small` (eu-de region, watsonx.ai)  
 **Auth:** IBM Cloud API key → watsonx.ai SDK (no Orchestrate REST API)
+
+---
+
+## How It Works
+
+EcoAgent uses **prompt engineering** + **agentic AI** to transform IBM Granite into a domain-specific eco advisor:
+
+1. **System Prompt:** 86-line `AGENT_INSTRUCTIONS` defining persona, output format, focus areas, and guardrails
+2. **Static Knowledge:** `IMPACT_TABLE` (20 eco actions) and `PRODUCT_RECS` (8 material categories) injected via prompt
+3. **Dynamic Context:** Household profile (members, location, habits) injected per session
+4. **Agent Loop:** Multi-step reasoning with tool calls (max 5 iterations)
+5. **Tool Execution:** Real-time tool calls with result feedback
+6. **Date Injection:** Current date injected into system prompt and search results for accuracy
+7. **Output Format:** Fixed 4-part structure (Quick Tip → Why it Matters → Impact → Optional Resource)
+8. **Guardrails:** Never invent stats, label [Lookup] vs [Estimate], no medical/financial advice
+
+---
+
+## UI Theme
+
+Ultra-light eco green theme with near-white background and green accents:
+
+- Background: `#fcfcfd` (near white)
+- Primary accent: `#2e7d50` (green)
+- Cards: `#ffffff` with subtle shadows
+- Text: `#1c1c1e` (near black), muted: `#4a4a4e`
+- Borders: `#e4e4e7` (light gray)
+- CheckboxGroup styled as selectable pills/chips
 
 ---
 
@@ -121,12 +183,16 @@ The `IMPACT_TABLE` dict below it controls the carbon/water/waste numbers shown i
 
 | File | Purpose |
 |---|---|
-| `app.py` | Gradio Blocks UI — all 4 tabs, callbacks, CSS |
-| `watsonx_client.py` | IBM watsonx.ai SDK wrapper, agent instructions, impact table |
-| `requirements.txt` | Pinned Python dependencies |
-| `.env` | Local credentials (never commit) |
+| `app.py` | Gradio Blocks UI — 4 tabs, callbacks, CSS theme |
+| `watsonx_client.py` | IBM watsonx.ai SDK wrapper, agent config, impact data |
+| `tools.py` | Agent tool definitions, executor, scheme database |
+| `agent.py` | Agentic loop with multi-step reasoning |
+| `requirements.txt` | Pinned Python dependencies (5 packages) |
+| `.env` | Local credentials (gitignored) |
 | `.env.example` | Template — safe to commit |
 | `ecoagent-plan.md` | Implementation plan and architecture decisions |
+| `architecture.png` | Architecture blueprint diagram |
+| `fill.txt` | PPT content fill for presentation |
 
 ---
 

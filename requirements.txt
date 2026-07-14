@@ -16,3 +16,6 @@ requests>=2.32.3
 
 # Credential / .env loading
 python-dotenv>=1.0.1
+
+# Web search for Agent Mode (DuckDuckGo, free, no API key)
+ddgs>=9.0.0
