@@ -18,7 +18,6 @@ An India-focused sustainable living assistant powered by **IBM Granite** via **w
 
 ---
 
-<<<<<<< HEAD
 ## Agent Mode
 
 EcoAgent features an **agentic AI loop** that can use tools to provide accurate, data-driven answers:
