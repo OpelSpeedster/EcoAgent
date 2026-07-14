@@ -3,7 +3,7 @@
 
 An India-focused sustainable living assistant powered by **IBM Granite** via **watsonx.ai**. Chat about eco habits, explore a household impact dashboard, look up local recycling guides, and build a family sustainability profile. 
 
-# This is the latest update of the project with Agentic AI: (https://github.com/OpelSpeedster/EcoAgent-AAI-) 
+## This is the latest update of the project with Agentic AI: (https://github.com/OpelSpeedster/EcoAgent-AAI-) 
 
 **Classification:** Agentic AI Application with Prompt Engineering
 
