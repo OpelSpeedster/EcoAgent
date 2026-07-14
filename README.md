@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 title: EcoAgent
 emoji: 🌱
@@ -9,6 +10,8 @@ app_file: app.py
 pinned: false
 ---
 
+=======
+>>>>>>> c6379ce5e65c9a003a536b677b6ee87b0a262b10
 # 🌱 EcoAgent — AI-Powered Eco Lifestyle Assistant
 
 An India-focused sustainable living assistant powered by **IBM Granite** via **watsonx.ai**. Chat about eco habits, explore a household impact dashboard, look up local recycling guides, and build a family sustainability profile.
@@ -28,6 +31,7 @@ An India-focused sustainable living assistant powered by **IBM Granite** via **w
 
 ---
 
+<<<<<<< HEAD
 ## Agent Mode
 
 EcoAgent features an **agentic AI loop** that can use tools to provide accurate, data-driven answers:
@@ -51,6 +55,19 @@ EcoAgent features an **agentic AI loop** that can use tools to provide accurate,
 - Web search results include `Search conducted on: <date>` header
 - LLM is instructed to trust search results over its training data
 - Prevents hallucinated outdated dates like "August 2025"
+=======
+## 💪 Effort Behind This Project
+
+This project is the result of a full **v2 rebuild** with focused work across product design, AI integration and UX:
+
+- Replaced the older pipeline with a new `watsonx_client.py` architecture using IBM Granite + watsonx.ai SDK.
+- Designed and built a complete 4-tab Gradio application (`Chat`, `Dashboard`, `Recycling Guide`, `Profile`).
+- Created impact tracking logic (eco score + CO₂/water/waste calculations) with session-aware state handling.
+- Added India-focused sustainability guidance, recycling flows, and household personalization.
+- Reworked environment setup, dependency management, and deployment readiness for Hugging Face Spaces.
+
+In short: this is not a template drop-in — it reflects significant end-to-end implementation effort from planning to delivery.
+>>>>>>> c6379ce5e65c9a003a536b677b6ee87b0a262b10
 
 ---
 
@@ -63,6 +80,7 @@ EcoAgent features an **agentic AI loop** that can use tools to provide accurate,
 watsonx_client.py   ← IBM Granite ModelInference, AGENT_INSTRUCTIONS, IMPACT_TABLE
         │
         ▼
+<<<<<<< HEAD
 tools.py            ← 5 tool definitions, executor, scheme database
         │
         ▼
@@ -70,6 +88,9 @@ agent.py            ← Agentic loop with multi-step reasoning
         │
         ▼
 app.py              ← Gradio Blocks (4 tabs, ultra-light eco green theme, session state)
+=======
+      app.py        ← Gradio Blocks (4 tabs, Bootstrap CSS, dark mode, session state)
+>>>>>>> c6379ce5e65c9a003a536b677b6ee87b0a262b10
 ```
 
 **Model:** `ibm/granite-4-h-small` (eu-de region, watsonx.ai)  
